@@ -1,0 +1,365 @@
+/* ==========================================
+   TypeBlitz - Cyberpunk Gaming Stylesheet
+   ========================================== */
+
+/* Google Fonts Imports are in index.html */
+
+/* Core Variables & Reset */
+:root {
+  --neon-cyan: #00f0ff;
+  --neon-purple: #9b30ff;
+  --neon-green: #00ff66;
+  --neon-red: #ff0055;
+  --neon-gold: #ffaa00;
+  --bg-void: #07070e;
+  --bg-void-dark: #040408;
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+}
+
+body {
+  background-color: var(--bg-void);
+  font-family: var(--font-sans);
+  color: #f1f5f9;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-void-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(25, 25, 50, 0.8);
+  border-radius: 99px;
+  border: 1px solid rgba(0, 240, 255, 0.1);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+/* Animated Retro Cyber Grid Pattern Background */
+#bg-particles {
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: center center;
+}
+
+.bg-radial-vignette {
+  background: radial-gradient(circle at center, transparent 20%, rgba(4, 4, 8, 0.95) 100%);
+}
+
+/* Glassmorphism Panel Component */
+.glass-panel {
+  background: rgba(11, 11, 23, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Custom Buttons */
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  border-radius: 0.85rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  outline: none;
+}
+
+.sidebar-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2px;
+  transition: stroke 0.25s ease;
+}
+
+.sidebar-btn:hover {
+  color: #ffffff;
+  background: rgba(25, 25, 50, 0.4);
+  border-color: rgba(0, 240, 255, 0.15);
+}
+
+.sidebar-btn.active {
+  color: #040408;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+  border-color: transparent;
+}
+
+.sidebar-btn.active svg {
+  stroke: #040408;
+}
+
+/* Custom Config Buttons (Speed Test Mode Configs) */
+.test-config-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  background: rgba(25, 25, 50, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.2s ease;
+}
+
+.test-config-btn:hover {
+  color: #ffffff;
+  border-color: rgba(0, 240, 255, 0.2);
+}
+
+.test-config-btn.active {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+/* Limit Limit Button Controls */
+.time-btn {
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  color: #64748b;
+  background: rgba(25, 25, 50, 0.3);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.time-btn:hover {
+  color: #ffffff;
+}
+
+.time-btn.active {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+/* Typing Caret Animation */
+.animate-caret {
+  border-right: 2px solid var(--neon-cyan);
+  animation: caret-pulse 1s infinite alternate;
+}
+
+@keyframes caret-pulse {
+  0%, 100% { border-color: var(--neon-cyan); }
+  50% { border-color: transparent; }
+}
+
+/* Dynamic Keyboard visual elements */
+.kbd-key {
+  height: 2.25rem;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.08s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.kbd-key.active-press {
+  background: var(--neon-cyan) !important;
+  color: #040408 !important;
+  border-color: var(--neon-cyan) !important;
+  transform: scale(0.92) translateY(2px);
+  box-shadow: 0 0 15px var(--neon-cyan), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* Typing Characters colors */
+.char-correct {
+  color: var(--neon-green);
+  text-shadow: 0 0 4px rgba(0, 255, 102, 0.2);
+  transition: color 0.05s ease;
+}
+
+.char-incorrect {
+  color: var(--neon-red);
+  background-color: rgba(255, 0, 85, 0.15);
+  border-radius: 2px;
+  text-shadow: 0 0 4px rgba(255, 0, 85, 0.2);
+  animation: key-shake 0.15s linear;
+}
+
+.char-current {
+  position: relative;
+  color: #ffffff;
+  border-bottom: 2px solid var(--neon-cyan);
+  animation: char-glow 0.8s infinite alternate;
+}
+
+@keyframes char-glow {
+  0% { text-shadow: 0 0 2px var(--neon-cyan); }
+  100% { text-shadow: 0 0 8px var(--neon-cyan); }
+}
+
+@keyframes key-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Multiplayer Bot buttons */
+.mp-bot-diff {
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  color: #64748b;
+  background: rgba(25, 25, 50, 0.3);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.mp-bot-diff:hover {
+  color: #ffffff;
+}
+
+.mp-bot-diff.active {
+  color: var(--neon-purple);
+  background: rgba(155, 48, 255, 0.08);
+  border: 1px solid rgba(155, 48, 255, 0.25);
+  box-shadow: 0 0 8px rgba(155, 48, 255, 0.15);
+}
+
+/* Settings fonts button customize */
+.settings-font-btn {
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  color: #64748b;
+  background: rgba(25, 25, 50, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.settings-font-btn.active {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.05);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+/* Cursor Trail Circles styling */
+.cursor-trail {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  box-shadow: 0 0 8px var(--neon-cyan);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fade-trail 0.4s linear forwards;
+}
+
+@keyframes fade-trail {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+}
+
+/* Splash Borders slow rotation */
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-reverse-spin {
+  animation: spin-reverse 12s linear infinite;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Combo multiplier flames FX wrapper */
+.flame-streak-fx {
+  box-shadow: 
+    0 0 25px rgba(255, 110, 0, 0.2),
+    inset 0 0 20px rgba(0, 240, 255, 0.1);
+  border-color: rgba(255, 110, 0, 0.45) !important;
+  animation: flame-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes flame-pulse {
+  0% { box-shadow: 0 0 20px rgba(255, 110, 0, 0.2), inset 0 0 15px rgba(0, 240, 255, 0.05); }
+  100% { box-shadow: 0 0 35px rgba(255, 80, 0, 0.4), inset 0 0 30px rgba(0, 240, 255, 0.2); }
+}
+
+/* Active Game Viewport border overlay and canvas fits */
+#game-viewport canvas {
+  display: block;
+}
+
+/* CSS Theme-specific override injectors (Applied to body tag) */
+body.theme-matrix {
+  --neon-cyan: #00ff00;
+  --neon-purple: #009900;
+  --bg-void: #020b02;
+  --bg-void-dark: #000400;
+}
+body.theme-matrix #bg-particles {
+  background-image: 
+    linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+}
+body.theme-matrix .sidebar-btn.active {
+  background: linear-gradient(135deg, #00ff00, #008800);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.35);
+}
+
+body.theme-synthwave {
+  --neon-cyan: #ff007f;
+  --neon-purple: #ffb700;
+  --bg-void: #140526;
+  --bg-void-dark: #0b0117;
+}
+body.theme-synthwave #bg-particles {
+  background-image: 
+    linear-gradient(rgba(255, 0, 127, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 127, 0.03) 1px, transparent 1px);
+}
+body.theme-synthwave .sidebar-btn.active {
+  background: linear-gradient(135deg, #ff007f, #ffb700);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.35);
+}

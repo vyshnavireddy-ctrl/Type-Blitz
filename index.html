@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeBlitz - Type Faster. Think Faster.</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="TypeBlitz is a futuristic, gamified typing speed test platform. Race against friends, practice coding drills, play retro arcade games, and level up your typing.">
+  <meta name="keywords" content="typing speed test, typing test, gamified typing, typing games, multiplayer typing, WPM, Monkeytype, Nitro Type">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            void: '#07070e',
+            voidDark: '#040408',
+            panel: 'rgba(11, 11, 23, 0.55)',
+            panelLight: 'rgba(25, 25, 50, 0.65)',
+            cyanGlow: '#00f0ff',
+            purpleGlow: '#9b30ff',
+            greenGlow: '#00ff66',
+            redGlow: '#ff0055',
+            goldGlow: '#ffaa00'
+          },
+          fontFamily: {
+            sans: ['Outfit', 'Inter', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace']
+          },
+          boxShadow: {
+            'cyan-neon': '0 0 15px rgba(0, 240, 255, 0.45)',
+            'purple-neon': '0 0 15px rgba(155, 48, 255, 0.45)',
+            'green-neon': '0 0 15px rgba(0, 255, 102, 0.45)',
+            'red-neon': '0 0 15px rgba(255, 0, 85, 0.45)',
+            'gold-neon': '0 0 15px rgba(255, 170, 0, 0.45)'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-void text-slate-100 font-sans min-h-screen overflow-hidden select-none">
+
+  <!-- Floating Canvas Particles Background -->
+  <canvas id="bg-particles" class="fixed top-0 left-0 w-full h-full -z-20 pointer-events-none"></canvas>
+  <div class="fixed top-0 left-0 w-full h-full bg-radial-vignette -z-10 pointer-events-none"></div>
+
+  <!-- Dynamic Cursor Trail Layer -->
+  <div id="cursor-trail-container" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></div>
+
+  <!-- Achievements/Notification Alert Toast -->
+  <div id="blitz-toast" class="fixed top-6 right-6 z-50 max-w-sm w-full glass-panel border border-cyanGlow/30 rounded-xl p-4 shadow-cyan-neon hidden flex items-start gap-3 transition-all duration-300 transform translate-x-20 opacity-0">
+    <div class="flex-shrink-0 bg-cyanGlow/20 text-cyanGlow p-2 rounded-lg" id="toast-icon-container">
+      <i data-lucide="trophy" class="w-6 h-6"></i>
+    </div>
+    <div class="flex-grow">
+      <div class="flex justify-between items-start">
+        <span class="text-sm font-bold text-cyanGlow tracking-wider font-mono uppercase" id="toast-title">Achievement Unlocked</span>
+        <button id="close-toast" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <h4 class="text-white font-semibold mt-0.5" id="toast-message">Keyboard Speed Demon</h4>
+      <p class="text-slate-400 text-xs mt-1" id="toast-detail">Achieved 80 WPM in Classic Speed Test.</p>
+    </div>
+  </div>
+
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="fixed inset-0 bg-voidDark z-50 flex flex-col justify-center items-center select-none transition-all duration-700">
+    <div class="relative flex flex-col items-center max-w-lg px-6 text-center">
+      <!-- Animated Logo Container -->
+      <div class="relative w-32 h-32 mb-6 flex justify-center items-center">
+        <!-- Circular cyber borders -->
+        <div class="absolute inset-0 border-2 border-cyanGlow/30 rounded-full animate-spin-slow"></div>
+        <div class="absolute inset-2 border border-dashed border-purpleGlow/40 rounded-full animate-reverse-spin"></div>
+        <!-- Center lightning bolt keycap key -->
+        <div class="absolute bg-panel w-20 h-20 rounded-2xl flex items-center justify-center border border-cyanGlow/50 shadow-cyan-neon relative overflow-hidden group">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-12 h-12 text-cyanGlow drop-shadow-[0_0_8px_#00f0ff] animate-pulse">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Cyber Brand Header -->
+      <h1 class="text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyanGlow via-purpleGlow to-cyanGlow font-mono animate-pulse uppercase">
+        Type<span class="text-white">Blitz</span>
+      </h1>
+      <p class="text-cyanGlow/70 font-mono tracking-[0.25em] text-xs uppercase mt-2">“Type Faster. Think Faster.”</p>
+
+      <!-- Connection status terminal text -->
+      <div class="mt-8 font-mono text-left w-72 bg-void p-3 rounded-lg border border-slate-800 text-[10px] text-slate-500 h-24 overflow-hidden flex flex-col gap-1 shadow-inner">
+        <div id="terminal-line-1" class="hidden">> LOADING AUDIO SYNTHESIZER... OK</div>
+        <div id="terminal-line-2" class="hidden">> CALIBRATING PARALLAX FIELDS... OK</div>
+        <div id="terminal-line-3" class="hidden">> LOADING ARCADE ENGINES... OK</div>
+        <div id="terminal-line-4" class="hidden">> SYNCING CLIENT DATABASE... OK</div>
+        <div id="terminal-line-5" class="hidden">> SECURITY HANDSHAKE SECURED. READY.</div>
+      </div>
+
+      <!-- Ready CTA to trigger AudioContext -->
+      <button id="btn-enter" class="mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-cyanGlow to-purpleGlow text-void font-bold tracking-wider hover:scale-105 active:scale-95 transition-all shadow-cyan-neon flex items-center gap-2 hover:brightness-125 select-none opacity-0 translate-y-4">
+        <span>LAUNCH TYPEBLITZ</span>
+        <i data-lucide="zap" class="w-5 h-5 fill-current"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Grid App Layout -->
+  <div class="h-screen w-screen flex relative opacity-0 transition-opacity duration-500" id="main-app">
+    
+    <!-- Sidebar Esports Navigation Bar -->
+    <aside class="w-20 md:w-64 h-full glass-panel border-r border-slate-800 flex flex-col items-center md:items-stretch justify-between py-6 px-3 z-30 transition-all select-none">
+      <div class="flex flex-col gap-6 w-full">
+        <!-- Logo Header -->
+        <div class="flex items-center gap-3 px-3 py-2 cursor-pointer font-mono hover:brightness-125 transition" onclick="switchPage('home')">
+          <div class="bg-cyanGlow/10 text-cyanGlow p-2 rounded-xl border border-cyanGlow/30 shadow-[0_0_6px_rgba(0,240,255,0.2)]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+          </div>
+          <span class="hidden md:inline text-xl font-extrabold tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyanGlow to-purpleGlow">Type<span class="text-white">Blitz</span></span>
+        </div>
+
+        <!-- Horizontal Divider -->
+        <div class="h-px bg-slate-800 mx-2"></div>
+
+        <!-- Sidebar Navigation Options -->
+        <nav class="flex flex-col gap-1 w-full" id="sidebar-nav">
+          <button data-page="home" class="sidebar-btn active" onclick="switchPage('home')">
+            <i data-lucide="layout-dashboard"></i>
+            <span class="hidden md:inline">Dashboard</span>
+          </button>
+          <button data-page="test" class="sidebar-btn" onclick="switchPage('test')">
+            <i data-lucide="zap"></i>
+            <span class="hidden md:inline">Speed Test</span>
+          </button>
+          <button data-page="practice" class="sidebar-btn" onclick="switchPage('practice')">
+            <i data-lucide="graduation-cap"></i>
+            <span class="hidden md:inline">Practice Lab</span>
+          </button>
+          <button data-page="games" class="sidebar-btn" onclick="switchPage('games')">
+            <i data-lucide="swords"></i>
+            <span class="hidden md:inline">Arcade Games</span>
+          </button>
+          <button data-page="multiplayer" class="sidebar-btn" onclick="switchPage('multiplayer')">
+            <i data-lucide="users"></i>
+            <span class="hidden md:inline">Multiplayer</span>
+          </button>
+          <button data-page="leaderboard" class="sidebar-btn" onclick="switchPage('leaderboard')">
+            <i data-lucide="bar-chart-3"></i>
+            <span class="hidden md:inline">Leaderboards</span>
+          </button>
+          <button data-page="shop" class="sidebar-btn" onclick="switchPage('shop')">
+            <i data-lucide="shopping-bag"></i>
+            <span class="hidden md:inline">Custom Shop</span>
+          </button>
+          <button data-page="aicoach" class="sidebar-btn text-cyanGlow" onclick="switchPage('aicoach')">
+            <i data-lucide="brain"></i>
+            <span class="hidden md:inline">AI Coach</span>
+          </button>
+          <button data-page="clans" class="sidebar-btn" onclick="switchPage('clans')">
+            <i data-lucide="shield"></i>
+            <span class="hidden md:inline">Cyber Guilds</span>
+          </button>
+          <button data-page="battlepass" class="sidebar-btn" onclick="switchPage('battlepass')">
+            <i data-lucide="crown"></i>
+            <span class="hidden md:inline">Battle Pass</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer (Profile, Sound & Settings) -->
+      <div class="flex flex-col gap-2 w-full">
+        <div class="h-px bg-slate-800 mx-2 mb-2"></div>
+
+        <button data-page="settings" class="sidebar-btn" onclick="switchPage('settings')">
+          <i data-lucide="settings"></i>
+          <span class="hidden md:inline">Settings</span>
+        </button>
+
+        <button data-page="admin" class="sidebar-btn text-amber-500/80 hover:text-amber-400" onclick="switchPage('admin')">
+          <i data-lucide="terminal"></i>
+          <span class="hidden md:inline">Admin Panel</span>
+        </button>
+
+        <!-- Dynamic Audio Mute Toggle Button -->
+        <button id="btn-sound-toggle" class="sidebar-btn text-slate-400 hover:text-white" onclick="toggleMuteState()">
+          <i data-lucide="volume-2" id="sound-icon"></i>
+          <span class="hidden md:inline" id="sound-text">Sound: ON</span>
+        </button>
+
+        <button data-page="profile" class="sidebar-btn flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800/40 text-left" onclick="switchPage('profile')">
+          <img id="header-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Blitzer" class="w-8 h-8 rounded-lg border border-slate-700 bg-slate-800" alt="Avatar">
+          <div class="hidden md:flex flex-col overflow-hidden max-w-[120px]">
+            <span class="text-sm font-semibold truncate text-white" id="header-username">GuestBlitzer</span>
+            <span class="text-[10px] text-cyanGlow font-mono uppercase tracking-wider" id="header-tier">Bronze I</span>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content App Canvas Container -->
+    <main class="flex-grow h-full flex flex-col overflow-hidden relative">
+      
+      <!-- Top Bar Global Esport Statistics & Leveling -->
+      <header class="h-20 border-b border-slate-800 flex items-center justify-between px-6 z-20 bg-void/50 backdrop-blur-md select-none">
+        
+        <!-- Welcome Slogan -->
+        <div class="flex flex-col">
+          <span class="text-xs font-semibold tracking-wider text-slate-500 font-mono uppercase" id="header-page-title">Command Center</span>
+          <span class="text-sm text-slate-300 font-mono hidden sm:inline" id="slogan-element">⚡ TYPE FASTER. THINK FASTER.</span>
+        </div>
+
+        <!-- Premium Currency, Streaks & XP Panel -->
+        <div class="flex items-center gap-4 sm:gap-6">
+          
+          <!-- Daily Streak Indicator -->
+          <div class="flex items-center gap-2 bg-gradient-to-r from-orange-600/10 to-amber-600/10 border border-orange-500/20 px-3 py-1.5 rounded-xl hover:scale-105 transition" title="Daily Streak System">
+            <span class="animate-bounce">🔥</span>
+            <span class="font-bold text-orange-500 font-mono text-sm" id="streak-counter">0 Days</span>
+          </div>
+
+          <!-- Currency Counter -->
+          <div class="flex items-center gap-2 bg-gradient-to-r from-cyanGlow/10 to-cyanGlow/5 border border-cyanGlow/20 px-3 py-1.5 rounded-xl hover:scale-105 transition" title="Blitz-Coins">
+            <i data-lucide="zap" class="w-4 h-4 text-cyanGlow fill-current animate-pulse"></i>
+            <span class="font-bold text-cyanGlow font-mono text-sm" id="coin-counter">0</span>
+            <span class="text-[9px] font-bold text-slate-400 font-mono uppercase">Coins</span>
+          </div>
+
+          <!-- Level & XP Bar -->
+          <div class="hidden md:flex flex-col w-48 gap-1.5" title="XP Progress Tracker">
+            <div class="flex justify-between items-center text-xs font-mono text-slate-400">
+              <span class="font-bold text-purpleGlow uppercase" id="xp-tier-label">Rank V</span>
+              <span class="font-bold" id="xp-text">0 / 100 XP</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+              <div id="xp-progress-bar" class="h-full bg-gradient-to-r from-cyanGlow via-purpleGlow to-cyanGlow rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Level tag -->
+          <div class="bg-purpleGlow/20 text-purpleGlow border border-purpleGlow/30 font-bold font-mono px-3 py-1 rounded-xl text-xs hover:shadow-purple-neon transition select-none">
+            LVL <span id="level-counter">1</span>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Content Pages Container -->
+      <div class="flex-grow overflow-y-auto overflow-x-hidden p-6 relative" id="pages-container">
+
+        <!-- ================= PAGE 1: HOME/DASHBOARD VIEW ================= -->
+        <section id="page-home" class="page-view flex flex-col gap-6">
+          
+          <!-- Esports Hero Banner -->
+          <div class="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-panel to-panelLight/40 p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-cyan-neon/5 hover:border-cyanGlow/20 transition-all duration-300">
+            <!-- Neon ambient glows -->
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-cyanGlow/10 rounded-full blur-[80px]"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purpleGlow/10 rounded-full blur-[80px]"></div>
+
+            <div class="flex flex-col max-w-xl text-center md:text-left relative z-10">
+              <span class="inline-flex self-center md:self-start bg-cyanGlow/10 border border-cyanGlow/30 text-cyanGlow font-bold font-mono text-[10px] tracking-wider px-3 py-1 rounded-full uppercase mb-3 animate-pulse">SYSTEM ONLINE // BLITZ REVOLUTION</span>
+              <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-2 leading-tight uppercase font-mono">
+                Type Blitz <br class="hidden md:inline"><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyanGlow to-purpleGlow">Speed Redefined.</span>
+              </h2>
+              <p class="text-slate-400 text-sm md:text-base mb-6 max-w-md font-sans">
+                Compete in real-time cybernetic multiplayer battles, master precision lessons, lock onto alien spaceships, and escape from hordes of zombies by typing accurately.
+              </p>
+              
+              <!-- Quick CTAs -->
+              <div class="flex flex-wrap justify-center md:justify-start gap-4">
+                <button class="px-6 py-3 rounded-xl bg-cyanGlow hover:bg-cyanGlow/80 text-void font-bold shadow-cyan-neon hover:scale-105 active:scale-95 transition-all flex items-center gap-2 uppercase tracking-wider text-xs" onclick="switchPage('test')">
+                  <i data-lucide="zap" class="w-4 h-4 fill-current"></i>
+                  <span>Speed Test</span>
+                </button>
+                <button class="px-6 py-3 rounded-xl border border-purpleGlow text-white font-bold hover:bg-purpleGlow/10 hover:shadow-purple-neon hover:scale-105 active:scale-95 transition-all flex items-center gap-2 uppercase tracking-wider text-xs" onclick="switchPage('games')">
+                  <i data-lucide="gamepad-2" class="w-4 h-4 text-purpleGlow"></i>
+                  <span>Arcade Games</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive Live Mini-Typing Widget Display -->
+            <div class="w-full md:w-80 glass-panel border border-slate-700/50 rounded-2xl p-5 shadow-2xl relative select-none">
+              <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                <span class="text-xs font-bold font-mono text-cyanGlow uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-greenGlow animate-ping"></span>
+                  Typing Simulator
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono uppercase">Engine 2.4</span>
+              </div>
+              
+              <div class="h-24 font-mono text-sm leading-relaxed text-slate-400 relative overflow-hidden select-none" id="mini-typing-demo">
+                <!-- Text typed dynamically in app.js loop -->
+                <span class="text-greenGlow">typeblitz</span> <span class="text-slate-200 border-r-2 border-cyanGlow animate-caret">accelerates</span> your fingers across the mechanical keyboard layout with esports analytics...
+              </div>
+
+              <!-- Mini statistics indicators -->
+              <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-center font-mono">
+                <div>
+                  <div class="text-slate-500 text-[10px] uppercase font-bold">AVG WPM</div>
+                  <div class="text-white text-base font-bold" id="card-avg-wpm">--</div>
+                </div>
+                <div>
+                  <div class="text-slate-500 text-[10px] uppercase font-bold">ACCURACY</div>
+                  <div class="text-white text-base font-bold" id="card-avg-acc">--%</div>
+                </div>
+                <div>
+                  <div class="text-slate-500 text-[10px] uppercase font-bold">GLOBAL</div>
+                  <div class="text-cyanGlow text-base font-bold" id="card-global-rank">#--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Cards Grid List -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Feature Card 1 -->
+            <div class="glass-panel border border-slate-800 rounded-2xl p-5 hover:border-cyanGlow/30 hover:shadow-cyan-neon/5 transition-all group">
+              <div class="p-3 bg-cyanGlow/10 text-cyanGlow rounded-xl w-12 h-12 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                <i data-lucide="gauge"></i>
+              </div>
+              <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wide">Real-time WPM Tracking</h3>
+              <p class="text-slate-400 text-xs leading-relaxed font-sans">
+                Track WPM, keystroke raw speeds, precision ratios, and character errors dynamically key-by-key in high-performance graphs.
+              </p>
+            </div>
+            <!-- Feature Card 2 -->
+            <div class="glass-panel border border-slate-800 rounded-2xl p-5 hover:border-purpleGlow/30 hover:shadow-purple-neon/5 transition-all group">
+              <div class="p-3 bg-purpleGlow/10 text-purpleGlow rounded-xl w-12 h-12 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                <i data-lucide="flame"></i>
+              </div>
+              <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wide">Esports Leveling & XP</h3>
+              <p class="text-slate-400 text-xs leading-relaxed font-sans">
+                Earn XP and level up from Bronze to Legendary tier. Complete daily challenges to amass Blitz-Coins for customized neon themes.
+              </p>
+            </div>
+            <!-- Feature Card 3 -->
+            <div class="glass-panel border border-slate-800 rounded-2xl p-5 hover:border-greenGlow/30 hover:shadow-green-neon/5 transition-all group">
+              <div class="p-3 bg-greenGlow/10 text-greenGlow rounded-xl w-12 h-12 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                <i data-lucide="bot"></i>
+              </div>
+              <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wide">AI-Driven TYPO COACH</h3>
+              <p class="text-slate-400 text-xs leading-relaxed font-sans">
+                Receive targeted typo corrections, custom finger-placement guides, weak-key drills, and interactive ghost records.
+              </p>
+            </div>
+          </div>
+
+          <!-- Interactive Live Virtual Keyboard Display Widget -->
+          <div class="glass-panel border border-slate-800 rounded-2xl p-6 flex flex-col gap-4 select-none">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <span class="text-xs font-bold font-mono text-purpleGlow uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="keyboard" class="w-4 h-4"></i>
+                Tactile Keyboard Visualizer
+              </span>
+              <div class="flex gap-2 text-[10px] font-mono text-slate-500">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-cyanGlow/20 border border-cyanGlow/40"></span> Active</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700"></span> Inactive</span>
+              </div>
+            </div>
+
+            <!-- Virtual Keyboard -->
+            <div id="virtual-keyboard" class="w-full flex flex-col gap-1.5 max-w-4xl mx-auto p-2 bg-void/50 border border-slate-800/80 rounded-xl font-mono text-[9px] md:text-[11px] font-bold text-slate-400 select-none">
+              <!-- Row 1 -->
+              <div class="flex gap-1 justify-center">
+                <kbd data-key="`" class="kbd-key shadow-inner bg-slate-800/50">`</kbd>
+                <kbd data-key="1" class="kbd-key shadow-inner bg-slate-800/50">1</kbd>
+                <kbd data-key="2" class="kbd-key shadow-inner bg-slate-800/50">2</kbd>
+                <kbd data-key="3" class="kbd-key shadow-inner bg-slate-800/50">3</kbd>
+                <kbd data-key="4" class="kbd-key shadow-inner bg-slate-800/50">4</kbd>
+                <kbd data-key="5" class="kbd-key shadow-inner bg-slate-800/50">5</kbd>
+                <kbd data-key="6" class="kbd-key shadow-inner bg-slate-800/50">6</kbd>
+                <kbd data-key="7" class="kbd-key shadow-inner bg-slate-800/50">7</kbd>
+                <kbd data-key="8" class="kbd-key shadow-inner bg-slate-800/50">8</kbd>
+                <kbd data-key="9" class="kbd-key shadow-inner bg-slate-800/50">9</kbd>
+                <kbd data-key="0" class="kbd-key shadow-inner bg-slate-800/50">0</kbd>
+                <kbd data-key="-" class="kbd-key shadow-inner bg-slate-800/50">-</kbd>
+                <kbd data-key="=" class="kbd-key shadow-inner bg-slate-800/50">=</kbd>
+                <kbd data-key="backspace" class="kbd-key w-12 md:w-16 shadow-inner bg-slate-800/50">BACK</kbd>
+              </div>
+              <!-- Row 2 -->
+              <div class="flex gap-1 justify-center">
+                <kbd data-key="tab" class="kbd-key w-10 md:w-14 shadow-inner bg-slate-800/50">TAB</kbd>
+                <kbd data-key="q" class="kbd-key shadow-inner bg-slate-800/50">Q</kbd>
+                <kbd data-key="w" class="kbd-key shadow-inner bg-slate-800/50">W</kbd>
+                <kbd data-key="e" class="kbd-key shadow-inner bg-slate-800/50">E</kbd>
+                <kbd data-key="r" class="kbd-key shadow-inner bg-slate-800/50">R</kbd>
+                <kbd data-key="t" class="kbd-key shadow-inner bg-slate-800/50">T</kbd>
+                <kbd data-key="y" class="kbd-key shadow-inner bg-slate-800/50">Y</kbd>
+                <kbd data-key="u" class="kbd-key shadow-inner bg-slate-800/50">U</kbd>
+                <kbd data-key="i" class="kbd-key shadow-inner bg-slate-800/50">I</kbd>
+                <kbd data-key="o" class="kbd-key shadow-inner bg-slate-800/50">O</kbd>
+                <kbd data-key="p" class="kbd-key shadow-inner bg-slate-800/50">P</kbd>
+                <kbd data-key="[" class="kbd-key shadow-inner bg-slate-800/50">[</kbd>
+                <kbd data-key="]" class="kbd-key shadow-inner bg-slate-800/50">]</kbd>
+                <kbd data-key="\" class="kbd-key shadow-inner bg-slate-800/50">\</kbd>
+              </div>
+              <!-- Row 3 -->
+              <div class="flex gap-1 justify-center">
+                <kbd data-key="capslock" class="kbd-key w-12 md:w-16 shadow-inner bg-slate-800/50">CAPS</kbd>
+                <kbd data-key="a" class="kbd-key shadow-inner bg-slate-800/50">A</kbd>
+                <kbd data-key="s" class="kbd-key shadow-inner bg-slate-800/50">S</kbd>
+                <kbd data-key="d" class="kbd-key shadow-inner bg-slate-800/50">D</kbd>
+                <kbd data-key="f" class="kbd-key shadow-inner bg-slate-800/50">F</kbd>
+                <kbd data-key="g" class="kbd-key shadow-inner bg-slate-800/50">G</kbd>
+                <kbd data-key="h" class="kbd-key shadow-inner bg-slate-800/50">H</kbd>
+                <kbd data-key="j" class="kbd-key shadow-inner bg-slate-800/50">J</kbd>
+                <kbd data-key="k" class="kbd-key shadow-inner bg-slate-800/50">K</kbd>
+                <kbd data-key="l" class="kbd-key shadow-inner bg-slate-800/50">L</kbd>
+                <kbd data-key=";" class="kbd-key shadow-inner bg-slate-800/50">;</kbd>
+                <kbd data-key="'" class="kbd-key shadow-inner bg-slate-800/50">'</kbd>
+                <kbd data-key="enter" class="kbd-key w-14 md:w-20 shadow-inner bg-slate-800/50">ENTER</kbd>
+              </div>
+              <!-- Row 4 -->
+              <div class="flex gap-1 justify-center">
+                <kbd data-key="shift" class="kbd-key w-16 md:w-24 shadow-inner bg-slate-800/50">SHIFT</kbd>
+                <kbd data-key="z" class="kbd-key shadow-inner bg-slate-800/50">Z</kbd>
+                <kbd data-key="x" class="kbd-key shadow-inner bg-slate-800/50">X</kbd>
+                <kbd data-key="c" class="kbd-key shadow-inner bg-slate-800/50">C</kbd>
+                <kbd data-key="v" class="kbd-key shadow-inner bg-slate-800/50">V</kbd>
+                <kbd data-key="b" class="kbd-key shadow-inner bg-slate-800/50">B</kbd>
+                <kbd data-key="n" class="kbd-key shadow-inner bg-slate-800/50">N</kbd>
+                <kbd data-key="m" class="kbd-key shadow-inner bg-slate-800/50">M</kbd>
+                <kbd data-key="," class="kbd-key shadow-inner bg-slate-800/50">,</kbd>
+                <kbd data-key="." class="kbd-key shadow-inner bg-slate-800/50">.</kbd>
+                <kbd data-key="/" class="kbd-key shadow-inner bg-slate-800/50">/</kbd>
+                <kbd data-key="shift" class="kbd-key w-16 md:w-24 shadow-inner bg-slate-800/50">SHIFT</kbd>
+              </div>
+              <!-- Row 5 -->
+              <div class="flex gap-1 justify-center">
+                <kbd data-key="control" class="kbd-key w-12 shadow-inner bg-slate-800/50">CTRL</kbd>
+                <kbd data-key="alt" class="kbd-key w-10 shadow-inner bg-slate-800/50">ALT</kbd>
+                <kbd data-key=" " class="kbd-key w-64 md:w-96 h-10 shadow-inner bg-slate-800/50">SPACE</kbd>
+                <kbd data-key="alt" class="kbd-key w-10 shadow-inner bg-slate-800/50">ALT</kbd>
+                <kbd data-key="control" class="kbd-key w-12 shadow-inner bg-slate-800/50">CTRL</kbd>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 2: TYPING TEST VIEW ================= -->
+        <section id="page-test" class="page-view flex flex-col gap-6 hidden">
+          
+          <!-- Test Controls & Config -->
+          <div class="flex flex-wrap items-center justify-between gap-4 bg-panel/30 border border-slate-800 p-4 rounded-2xl">
+            <!-- Mode selections -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-slate-500 mr-2">GAME MODE:</span>
+              <button class="test-config-btn active" data-mode="classic" onclick="setTestMode('classic')">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>Classic</span>
+              </button>
+              <button class="test-config-btn" data-mode="timeattack" onclick="setTestMode('timeattack')">
+                <i data-lucide="alarm-clock" class="w-3.5 h-3.5"></i>
+                <span>Time Attack</span>
+              </button>
+              <button class="test-config-btn" data-mode="zen" onclick="setTestMode('zen')">
+                <i data-lucide="flower" class="w-3.5 h-3.5"></i>
+                <span>Zen Mode</span>
+              </button>
+              <button class="test-config-btn" data-mode="hardcore" onclick="setTestMode('hardcore')">
+                <i data-lucide="skull" class="w-3.5 h-3.5"></i>
+                <span>Hardcore</span>
+              </button>
+            </div>
+
+            <!-- Time Options -->
+            <div class="flex items-center gap-2" id="time-options-container">
+              <span class="text-xs font-mono text-slate-500 mr-2">LIMIT:</span>
+              <button class="time-btn active" data-time="15" onclick="setTestTime(15)">15s</button>
+              <button class="time-btn" data-time="30" onclick="setTestTime(30)">30s</button>
+              <button class="time-btn" data-time="60" onclick="setTestTime(60)">60s</button>
+              <button class="time-btn" data-time="120" onclick="setTestTime(120)">120s</button>
+            </div>
+          </div>
+
+          <!-- Typing Canvas & AI Commentator Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            
+            <!-- Real Typing Area -->
+            <div class="lg:col-span-3 glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-6 relative min-h-[350px]">
+              
+              <!-- Ambient neon streak glow border -->
+              <div class="absolute -inset-px border border-cyanGlow/25 rounded-3xl pointer-events-none opacity-0 transition-opacity duration-300" id="test-streak-glow"></div>
+              
+              <!-- Metrics Header -->
+              <div class="flex justify-between items-center border-b border-slate-800 pb-4 select-none">
+                <div class="flex gap-6 font-mono">
+                  <div class="flex flex-col">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">WPM</span>
+                    <span class="text-2xl font-black text-cyanGlow tracking-wider" id="live-wpm">0</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Accuracy</span>
+                    <span class="text-2xl font-black text-purpleGlow tracking-wider"><span id="live-acc">100</span>%</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Streak</span>
+                    <span class="text-2xl font-black text-orange-500 tracking-wider flex items-center gap-1">
+                      <span id="live-streak">0</span>
+                      <span class="text-xs text-orange-500/50 hidden" id="streak-multiplier">x2</span>
+                    </span>
+                  </div>
+                  <div class="flex flex-col" id="ghost-metric-container">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Ghost WPM</span>
+                    <span class="text-lg font-bold text-slate-400 font-mono tracking-wider" id="ghost-wpm-bar">--</span>
+                  </div>
+                </div>
+
+                <!-- Timer / Progress -->
+                <div class="flex items-center gap-3">
+                  <!-- Mute test sound toggle -->
+                  <button class="bg-slate-800/60 hover:bg-slate-800 p-2 rounded-xl text-slate-400 hover:text-white transition" onclick="toggleMuteState()">
+                    <i data-lucide="volume-2" class="w-4 h-4" id="test-sound-toggle-icon"></i>
+                  </button>
+                  <div class="bg-cyanGlow/10 text-cyanGlow border border-cyanGlow/25 font-bold font-mono px-4 py-2 rounded-2xl text-xl shadow-cyan-neon/10" id="live-timer">
+                    00:00
+                  </div>
+                </div>
+              </div>
+
+              <!-- Typing Field Text Block -->
+              <div class="relative min-h-[140px] text-lg font-mono leading-relaxed tracking-wider outline-none p-3 overflow-hidden select-none" id="typing-textbox-container" tabindex="0">
+                <!-- Hidden overlay instructions to click here to focus -->
+                <div class="absolute inset-0 bg-void/80 backdrop-blur-sm rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer z-10 transition-all select-none" id="test-focus-overlay">
+                  <i data-lucide="keyboard" class="w-8 h-8 text-cyanGlow animate-bounce"></i>
+                  <span class="font-bold text-sm tracking-widest text-cyanGlow uppercase">Click or Press any key to Start Test</span>
+                  <span class="text-[10px] text-slate-500 uppercase font-mono">Audio Synth active</span>
+                </div>
+                
+                <!-- Actual rendered words. Loaded in JS -->
+                <div id="test-text-display" class="select-none flex flex-wrap gap-x-2 gap-y-3 pt-2 text-slate-500">
+                  <!-- Span nodes populated by engine.js -->
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="flex justify-between items-center border-t border-slate-800/80 pt-4 select-none">
+                <span class="text-[10px] text-slate-500 font-mono uppercase flex items-center gap-1.5">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyanGlow"></span>
+                  TAB + ENTER to Quick Reset
+                </span>
+
+                <button class="flex items-center gap-2 px-5 py-2 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 font-mono text-xs font-semibold text-slate-300 transition-all active:scale-95" id="btn-reset-test" onclick="resetTypingTest()">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                  <span>RESET TEST</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- AI Commentator & Ghost Racer side panel -->
+            <div class="flex flex-col gap-6">
+              
+              <!-- AI Commentator -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-4 relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-24 h-24 bg-cyanGlow/5 rounded-full blur-xl"></div>
+                
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-2.5 select-none">
+                  <div class="bg-cyanGlow/10 text-cyanGlow p-1.5 rounded-lg border border-cyanGlow/30">
+                    <i data-lucide="bot" class="w-4 h-4 animate-pulse"></i>
+                  </div>
+                  <span class="text-xs font-bold font-mono text-cyanGlow uppercase tracking-wider">AI Commentator</span>
+                </div>
+
+                <div class="flex flex-col items-center text-center gap-3">
+                  <div class="w-16 h-16 rounded-full border border-cyanGlow/30 bg-void relative overflow-hidden flex items-center justify-center shadow-cyan-neon/10">
+                    <!-- Dynamic comment face avatar -->
+                    <img id="ai-commentator-face" src="https://api.dicebear.com/7.x/bottts/svg?seed=ai-coach&backgroundColor=07070e" class="w-12 h-12" alt="AI Face">
+                  </div>
+                  <div class="w-full bg-void/50 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 font-mono min-h-[64px] flex items-center justify-center leading-relaxed" id="ai-commentator-speech">
+                    "Awaiting typing test init. Calibrating fingers..."
+                  </div>
+                </div>
+              </div>
+
+              <!-- Replay & Ghost Racing Console -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-3 select-none">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                  <i data-lucide="ghost" class="w-4 h-4 text-purpleGlow"></i>
+                  <span class="text-xs font-bold font-mono text-purpleGlow uppercase tracking-wider">Ghost Challenger</span>
+                </div>
+                
+                <div class="flex flex-col gap-2 font-mono text-[10px]">
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">CHALLENGER:</span>
+                    <span class="text-white font-bold" id="ghost-status-lbl">YOUR PERSONAL BEST</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">TARGET WPM:</span>
+                    <span class="text-cyanGlow font-bold" id="ghost-target-wpm">--</span>
+                  </div>
+                </div>
+                <div class="h-px bg-slate-800/80 my-1"></div>
+                <button class="w-full py-2.5 rounded-xl border border-dashed border-purpleGlow/40 hover:border-purpleGlow text-purpleGlow/80 hover:text-white font-mono text-xs transition duration-200" onclick="toggleGhostRacer()">
+                  <span id="btn-ghost-toggle-text">ACTIVATE GHOST RACING</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Typing Speed Test Result Panel (Shown at end of test modal) -->
+          <div id="test-result-panel" class="glass-panel border-2 border-cyanGlow/30 rounded-3xl p-8 max-w-4xl mx-auto w-full flex flex-col gap-8 hidden shadow-cyan-neon relative">
+            <div class="absolute -top-6 -left-6 bg-gradient-to-r from-cyanGlow to-purpleGlow text-void font-extrabold font-mono text-xs uppercase px-4 py-1.5 rounded-full shadow-lg">TEST COMPLETE</div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center select-none">
+              <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl shadow-inner">
+                <div class="text-slate-500 text-xs font-bold font-mono uppercase mb-1">FINAL WPM</div>
+                <div class="text-4xl font-black text-cyanGlow tracking-wider font-mono" id="res-wpm">--</div>
+              </div>
+              <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl shadow-inner">
+                <div class="text-slate-500 text-xs font-bold font-mono uppercase mb-1">ACCURACY</div>
+                <div class="text-4xl font-black text-purpleGlow tracking-wider font-mono"><span id="res-acc">--</span>%</div>
+              </div>
+              <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl shadow-inner">
+                <div class="text-slate-500 text-xs font-bold font-mono uppercase mb-1">ERRORS</div>
+                <div class="text-4xl font-black text-redGlow tracking-wider font-mono" id="res-errors">--</div>
+              </div>
+              <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl shadow-inner">
+                <div class="text-slate-500 text-xs font-bold font-mono uppercase mb-1">XP EARNED</div>
+                <div class="text-4xl font-black text-goldGlow tracking-wider font-mono" id="res-xp">+--</div>
+              </div>
+            </div>
+
+            <!-- Result charts -->
+            <div class="h-64 bg-void/40 border border-slate-800 rounded-2xl p-4 flex items-center justify-center">
+              <canvas id="res-chart" class="w-full h-full"></canvas>
+            </div>
+
+            <!-- Replay dashboard -->
+            <div class="flex flex-wrap justify-center sm:justify-between items-center gap-4 select-none">
+              <button class="px-5 py-2.5 rounded-xl border border-slate-800 bg-slate-800/40 hover:bg-slate-800 text-xs font-bold font-mono text-slate-300 transition flex items-center gap-2 active:scale-95" onclick="replayLastTypingRun()">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>WATCH REPLAY</span>
+              </button>
+
+              <div class="flex gap-4">
+                <button class="px-5 py-2.5 rounded-xl border border-cyanGlow/30 text-cyanGlow hover:bg-cyanGlow/10 text-xs font-bold font-mono transition flex items-center gap-2 active:scale-95" onclick="resetTypingTest()">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                  <span>NEW SPEED TEST</span>
+                </button>
+                <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyanGlow to-purpleGlow text-void text-xs font-bold font-mono hover:scale-105 active:scale-95 transition flex items-center gap-2 shadow-cyan-neon/10" onclick="switchPage('home')">
+                  <span>BACK TO DASHBOARD</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 3: PRACTICE LAB VIEW ================= -->
+        <section id="page-practice" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="graduation-cap" class="text-cyanGlow"></i>
+              Practice Lab & Lessons
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Hone your layouts, target symbol shortcuts, or upload custom exercises.</p>
+          </div>
+
+          <!-- Grid panel -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Custom Lessons Cards list -->
+            <div class="md:col-span-2 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-slate-500 uppercase tracking-wider select-none">Available Training Modules</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Beginner Lesson -->
+                <div class="glass-panel border border-slate-800 rounded-2xl p-5 flex flex-col justify-between min-h-[160px] hover:border-cyanGlow/25 transition">
+                  <div>
+                    <span class="bg-cyanGlow/10 text-cyanGlow text-[9px] font-bold font-mono px-2 py-0.5 rounded border border-cyanGlow/20">BASIC</span>
+                    <h4 class="text-base font-bold text-white mt-2 font-mono uppercase">Home Row Mastery</h4>
+                    <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans">Practice keys A S D F and J K L ; with standard hand rest alignment.</p>
+                  </div>
+                  <button class="mt-4 w-full py-2 bg-slate-800 hover:bg-cyanGlow hover:text-void font-bold text-xs rounded-xl font-mono transition uppercase active:scale-95" onclick="startPracticeLesson('homerow')">START DRILL</button>
+                </div>
+                <!-- Intermediate Lesson -->
+                <div class="glass-panel border border-slate-800 rounded-2xl p-5 flex flex-col justify-between min-h-[160px] hover:border-purpleGlow/25 transition">
+                  <div>
+                    <span class="bg-purpleGlow/10 text-purpleGlow text-[9px] font-bold font-mono px-2 py-0.5 rounded border border-purpleGlow/20">INTERMEDIATE</span>
+                    <h4 class="text-base font-bold text-white mt-2 font-mono uppercase">Numbers & Symbols</h4>
+                    <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans">Boost numerical keys and common equation symbols speed.</p>
+                  </div>
+                  <button class="mt-4 w-full py-2 bg-slate-800 hover:bg-purpleGlow hover:text-white font-bold text-xs rounded-xl font-mono transition uppercase active:scale-95" onclick="startPracticeLesson('numbers')">START DRILL</button>
+                </div>
+                <!-- Advanced Lesson -->
+                <div class="glass-panel border border-slate-800 rounded-2xl p-5 flex flex-col justify-between min-h-[160px] hover:border-greenGlow/25 transition">
+                  <div>
+                    <span class="bg-greenGlow/10 text-greenGlow text-[9px] font-bold font-mono px-2 py-0.5 rounded border border-greenGlow/20">ADVANCED</span>
+                    <h4 class="text-base font-bold text-white mt-2 font-mono uppercase">Full HTML & Javascript</h4>
+                    <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans">Type actual HTML tags, loops, functions, and brackets.</p>
+                  </div>
+                  <button class="mt-4 w-full py-2 bg-slate-800 hover:bg-greenGlow hover:text-void font-bold text-xs rounded-xl font-mono transition uppercase active:scale-95" onclick="startPracticeLesson('coding')">START DRILL</button>
+                </div>
+                <!-- AI Weak drills -->
+                <div class="glass-panel border-2 border-dashed border-slate-800 rounded-2xl p-5 flex flex-col justify-between min-h-[160px] hover:border-cyanGlow/30 hover:bg-cyanGlow/5 transition relative overflow-hidden group">
+                  <div>
+                    <span class="bg-orange-500/10 text-orange-500 text-[9px] font-bold font-mono px-2 py-0.5 rounded border border-orange-500/20">AI INTELLIGENCE</span>
+                    <h4 class="text-base font-bold text-white mt-2 font-mono uppercase flex items-center gap-1.5">
+                      Weak-Key Remedy
+                      <i data-lucide="sparkles" class="w-4 h-4 text-cyanGlow animate-pulse"></i>
+                    </h4>
+                    <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans" id="weak-key-desc">Dynamically target keys you consistently misspell during speed tests.</p>
+                  </div>
+                  <button class="mt-4 w-full py-2 bg-gradient-to-r from-cyanGlow to-purpleGlow text-void font-bold text-xs rounded-xl font-mono transition uppercase active:scale-95 group-hover:brightness-125" onclick="startAIWeakDrill()">GENERATE LESSON</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom text uploader & hand placements guidance -->
+            <div class="flex flex-col gap-6">
+              
+              <!-- Custom Text Upload -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-4">
+                <h3 class="text-xs font-bold font-mono text-cyanGlow uppercase tracking-wider select-none">Custom Text Uplink</h3>
+                
+                <textarea id="practice-custom-text" class="w-full h-32 bg-void/50 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 focus:outline-none focus:border-cyanGlow/50 focus:shadow-cyan-neon/10 transition resize-none placeholder-slate-600" placeholder="Paste custom paragraphs, essays, or codes here..."></textarea>
+                
+                <button class="w-full py-3 bg-cyanGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 active:scale-98 transition shadow-cyan-neon/10" onclick="uploadCustomPractice()">
+                  LOAD CUSTOM EXERCISE
+                </button>
+              </div>
+
+              <!-- Finger Guidance Card -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-3 select-none">
+                <h3 class="text-xs font-bold font-mono text-purpleGlow uppercase tracking-wider">Finger Placement Guide</h3>
+                <p class="text-slate-400 text-[11px] leading-relaxed">Ensure maximum efficiency: color overlay on active key highlights which finger you must tap with.</p>
+                <div class="flex items-center gap-2 mt-2 bg-void/50 border border-slate-800/80 p-2.5 rounded-xl text-[10px] font-mono text-slate-400">
+                  <span class="w-3.5 h-3.5 rounded bg-cyanGlow/20 border border-cyanGlow"></span> Left Index
+                  <span class="w-3.5 h-3.5 rounded bg-purpleGlow/20 border border-purpleGlow ml-2"></span> Right Index
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 4: ARCADE GAMES VIEW ================= -->
+        <section id="page-games" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="swords" class="text-purpleGlow"></i>
+              Arcade Typing Arena
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Unlock fast-paced survival typing mini-games and earn multipliers.</p>
+          </div>
+
+          <!-- Selector and Game Panel -->
+          <div id="game-selector-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 select-none">
+            
+            <!-- Game Card 1: Zombie Escape -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-redGlow/40 hover:shadow-red-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-redGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-redGlow/10 text-redGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-redGlow/20">
+                  <i data-lucide="skull" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Zombie Escape</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  A cyber-zombie horde is sprinting closer! Type the scrolling target words to ignite your nitro thrusters. Keep your distance to survive!
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-redGlow text-white font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-red-neon/15" onclick="launchArcadeGame('zombie')">RUN FOR SURVIVAL</button>
+            </div>
+
+            <!-- Game Card 2: Falling Words -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-cyanGlow/40 hover:shadow-cyan-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-cyanGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-cyanGlow/10 text-cyanGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-cyanGlow/20">
+                  <i data-lucide="download" class="w-6 h-6 animate-bounce"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Falling Words</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  Incoming data pods descending from the cloud! Target each word to aim the defense turrets and blast them before they breach the laser line.
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-cyanGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-cyan-neon/15" onclick="launchArcadeGame('falling')">DEFEND HORIZON</button>
+            </div>
+
+            <!-- Game Card 3: Space Shooter -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-purpleGlow/40 hover:shadow-purple-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-purpleGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-purpleGlow/10 text-purpleGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-purpleGlow/20">
+                  <i data-lucide="rocket" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Space Shooter</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  Pilot an orbital plasma interceptor. Lock targeting crosshairs on hostile alien gunships by typing their codes and unleashing homing torpedoes!
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-purpleGlow text-white font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-purple-neon/15" onclick="launchArcadeGame('spaceshooter')">PILOT SHIP</button>
+            </div>
+
+            <!-- Game Card 4: Boss Battle -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-goldGlow/40 hover:shadow-gold-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-goldGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-goldGlow/10 text-goldGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-goldGlow/20">
+                  <i data-lucide="sword" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Megabot Boss</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  Engage Megabot Alpha! Type attack phrases to fire explosive missiles, and rapidly type SHIELD when the warning alarms sound to deflect the death ray!
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-gradient-to-r from-goldGlow to-orange-500 text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-gold-neon/15" onclick="launchArcadeGame('boss')">CHALLENGE BOSS</button>
+            </div>
+
+            <!-- Game Card 5: Cyber Runner -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-greenGlow/40 hover:shadow-green-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-greenGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-greenGlow/10 text-greenGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-greenGlow/20">
+                  <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Cyber Runner</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  High-speed rooftop parkour! Obstacles and laser gates are rushing toward you. Type the parkour words to jump and phase across barriers!
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-greenGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-green-neon/15" onclick="launchArcadeGame('cyberrunner')">START PARKOUR</button>
+            </div>
+
+            <!-- Game Card 6: Hacker Escape -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[260px] hover:border-cyanGlow/40 hover:shadow-cyan-neon/5 transition duration-300 relative group overflow-hidden">
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-cyanGlow/5 rounded-full blur-xl"></div>
+              <div>
+                <div class="w-12 h-12 bg-cyanGlow/10 text-cyanGlow rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 border border-cyanGlow/20">
+                  <i data-lucide="terminal" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-mono uppercase tracking-wide">Hacker Escape</h3>
+                <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                  Corporate trace initiated! Type decrypt codes to bypass 5 security nodes before the trace reaches 100%. Crack the mainframe!
+                </p>
+              </div>
+              <button class="mt-6 w-full py-3 bg-gradient-to-r from-cyanGlow to-purpleGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-cyan-neon/15" onclick="launchArcadeGame('hackerescape')">INTRUDE SYSTEM</button>
+            </div>
+
+          </div>
+
+          <!-- Active Game HUD Container -->
+          <div id="game-active-hud" class="glass-panel border-2 border-slate-800 rounded-3xl p-6 hidden flex flex-col gap-6 relative select-none">
+            
+            <!-- Game HUD stats -->
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 font-mono">
+              <div class="flex items-center gap-4">
+                <span class="text-base font-bold text-white uppercase tracking-wider" id="game-hud-title">ACTIVE GAME</span>
+                <span class="bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded" id="game-hud-difficulty">LOBBY STAGE 1</span>
+              </div>
+              
+              <div class="flex items-center gap-6">
+                <div class="flex flex-col items-end">
+                  <span class="text-[9px] text-slate-500">SCORE</span>
+                  <span class="text-xl font-bold text-cyanGlow" id="game-hud-score">00000</span>
+                </div>
+                <div class="flex flex-col items-end" id="game-hud-life-container">
+                  <span class="text-[9px] text-slate-500">SURVIVAL HP</span>
+                  <span class="text-xl font-bold text-redGlow" id="game-hud-life">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actual Interactive Game Canvas -->
+            <div class="w-full h-96 rounded-2xl bg-voidDark/80 border border-slate-800 overflow-hidden relative" id="game-viewport">
+              <canvas id="game-canvas" class="w-full h-full"></canvas>
+              
+              <!-- Center Instruction Modal Overlay -->
+              <div class="absolute inset-0 bg-voidDark/90 backdrop-blur-sm flex flex-col justify-center items-center gap-4 text-center z-10 p-6" id="game-start-overlay">
+                <h3 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyanGlow to-purpleGlow uppercase font-mono tracking-widest" id="game-start-title">GAME INCOMING</h3>
+                <p class="text-slate-400 text-sm max-w-md font-sans leading-relaxed" id="game-start-desc">Click button to lock in. Fingers rest on home row keys.</p>
+                <div class="flex flex-wrap items-center justify-center gap-4 mt-2">
+                  <button class="px-8 py-3.5 rounded-xl bg-cyanGlow text-void font-extrabold font-mono text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition shadow-cyan-neon" id="btn-start-loaded-game">ACTIVATE ENGINES</button>
+                  <button class="px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-xs font-bold text-slate-300 transition uppercase tracking-wider font-mono hover:scale-105" onclick="quitActiveArcadeGame()">CHOOSE ANOTHER GAME</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Game Bottom Controllers -->
+            <div class="flex justify-between items-center font-mono select-none">
+              <!-- Virtual Focus Input Field for mobile/gameplay -->
+              <input type="text" id="game-focus-input" class="absolute w-0 h-0 opacity-0 pointer-events-none" autocomplete="off" spellcheck="false">
+              
+              <span class="text-[10px] text-slate-500 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-greenGlow animate-ping"></span>
+                Input captures directly. Keep hands on keyboard. Press ESC to Pause.
+              </span>
+              
+              <button class="px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 text-xs font-bold text-slate-300 transition hover:scale-105" onclick="quitActiveArcadeGame()">
+                QUIT TO GAMES LOBBY
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 5: MULTIPLAYER VIEW ================= -->
+        <section id="page-multiplayer" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="users" class="text-cyanGlow"></i>
+              Arena Matchmaking
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Race real-time against typing bots or connect directly with friends local networks.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Matchmaking Lobby Arena (Left) -->
+            <div class="lg:col-span-2 glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-6 select-none" id="mp-lobby-panel">
+              
+              <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span class="text-xs font-bold font-mono text-cyanGlow uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-cyanGlow animate-pulse"></span>
+                  Lobby Matchmaking
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono" id="mp-active-racers-count">3 Racers Online</span>
+              </div>
+
+              <!-- Bots configurations -->
+              <div class="flex flex-wrap items-center justify-between gap-4 bg-void/50 border border-slate-800 p-3.5 rounded-xl">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold font-mono text-slate-400">BOT DIFFICULTY:</span>
+                  <button class="mp-bot-diff active" onclick="setMPBotDifficulty('medium')">Medium</button>
+                  <button class="mp-bot-diff" onclick="setMPBotDifficulty('hard')">Pro</button>
+                  <button class="mp-bot-diff" onclick="setMPBotDifficulty('godlike')">Godlike</button>
+                </div>
+                <button class="px-6 py-2.5 bg-cyanGlow text-void font-extrabold font-mono text-xs uppercase rounded-xl shadow-cyan-neon/10 hover:scale-105 active:scale-95 transition" onclick="triggerMPMatchmaking()">FIND QUICK MATCH</button>
+              </div>
+
+              <!-- Matched Players lists (Racers Grid) -->
+              <div class="flex flex-col gap-4 border border-slate-800 p-4 rounded-xl bg-void/30" id="mp-racers-visualizer">
+                <!-- Racer 1 (User) -->
+                <div class="flex flex-col gap-1.5">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-cyanGlow font-bold">You (GuestBlitzer)</span>
+                    <span class="text-slate-300 font-semibold" id="mp-user-wpm-live">0 WPM</span>
+                  </div>
+                  <div class="w-full h-3 bg-slate-800/80 rounded-full border border-slate-700/50 overflow-hidden relative">
+                    <div id="mp-bar-user" class="h-full bg-cyanGlow rounded-full transition-all duration-300" style="width: 0%;"></div>
+                  </div>
+                </div>
+                
+                <!-- Racer 2 (Bot A) -->
+                <div class="flex flex-col gap-1.5 opacity-60 transition" id="mp-racer-bot-1">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-purpleGlow font-bold flex items-center gap-1">⚡ CyberBot Alpha <span class="bg-purpleGlow/10 text-purpleGlow text-[8px] font-mono px-1 rounded">BOT</span></span>
+                    <span class="text-slate-400" id="mp-bot1-wpm-live">-- WPM</span>
+                  </div>
+                  <div class="w-full h-3 bg-slate-800/80 rounded-full border border-slate-700/50 overflow-hidden relative">
+                    <div id="mp-bar-bot1" class="h-full bg-purpleGlow rounded-full transition-all duration-300" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Racer 3 (Bot B) -->
+                <div class="flex flex-col gap-1.5 opacity-60 transition" id="mp-racer-bot-2">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-purpleGlow font-bold flex items-center gap-1">⚡ PhantomRunner <span class="bg-purpleGlow/10 text-purpleGlow text-[8px] font-mono px-1 rounded">BOT</span></span>
+                    <span class="text-slate-400" id="mp-bot2-wpm-live">-- WPM</span>
+                  </div>
+                  <div class="w-full h-3 bg-slate-800/80 rounded-full border border-slate-700/50 overflow-hidden relative">
+                    <div id="mp-bar-bot2" class="h-full bg-purpleGlow rounded-full transition-all duration-300" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Real Race Typing HUD (Hidden until match starts) -->
+              <div id="mp-race-typing-container" class="hidden flex flex-col gap-4 border-t border-slate-800 pt-4 relative">
+                <!-- Count down alarm modal overlay -->
+                <div class="absolute inset-0 bg-voidDark/95 rounded-2xl flex flex-col justify-center items-center gap-2 z-20 text-center select-none" id="mp-countdown-overlay">
+                  <h4 class="text-[10px] font-bold text-slate-500 font-mono tracking-widest uppercase">MATCHMAKING SECURED</h4>
+                  <div class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyanGlow to-purpleGlow font-mono animate-ping" id="mp-countdown-num">3</div>
+                  <p class="text-slate-400 text-xs">Ready fingers on keyboard...</p>
+                </div>
+
+                <div class="flex justify-between text-xs font-mono text-slate-400 select-none">
+                  <span>Race text limits: 30 seconds</span>
+                  <span>Press keys inside text display area</span>
+                </div>
+
+                <!-- Typing panel -->
+                <div class="relative min-h-[120px] bg-void/50 border border-slate-800 p-4 rounded-xl font-mono text-sm leading-relaxed tracking-wider outline-none select-none" id="mp-textbox-container" tabindex="0">
+                  <div id="mp-text-display" class="flex flex-wrap gap-x-2 gap-y-2.5 text-slate-500 select-none">
+                    <!-- Spans generated by JS -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Local peer connect network details (Right) -->
+            <div class="flex flex-col gap-6">
+              <!-- WebRTC Network Connection -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-4 select-none">
+                <h3 class="text-xs font-bold font-mono text-purpleGlow uppercase tracking-wider">Blitz-Net P2P Racing</h3>
+                <p class="text-slate-400 text-[11px] leading-relaxed">Spawn a zero-server lobby using peer network codes. Paste your friend's code or copy your host ID.</p>
+                
+                <div class="flex flex-col gap-3 font-mono text-[10px]">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-slate-500">YOUR P2P HOST ID:</span>
+                    <div class="flex items-center gap-1 bg-void p-2 rounded border border-slate-800">
+                      <span class="text-white font-bold select-all truncate flex-grow" id="p2p-my-id">BLITZ-HOST-W828</span>
+                      <button class="text-cyanGlow hover:scale-105 active:scale-95 transition" onclick="copyP2PId()"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                  </div>
+                  
+                  <div class="flex flex-col gap-1 mt-1">
+                    <span class="text-slate-500">ENTER OPPONENT ID:</span>
+                    <input type="text" id="p2p-join-id" class="w-full bg-void p-2 rounded border border-slate-800 text-white font-bold placeholder-slate-600 focus:outline-none focus:border-cyanGlow" placeholder="e.g. BLITZ-HOST-XXXX">
+                  </div>
+                </div>
+
+                <button class="w-full py-2.5 bg-purpleGlow text-white font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-purple-neon/10" onclick="connectP2PNetwork()">
+                  ESTABLISH P2P LINK
+                </button>
+              </div>
+
+              <!-- Spectator Arena details -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col gap-3 select-none">
+                <h3 class="text-xs font-bold font-mono text-cyanGlow uppercase tracking-wider">Match Commentator Log</h3>
+                <div class="bg-void/50 border border-slate-800/80 rounded-xl p-3 h-32 overflow-y-auto text-[10px] font-mono text-slate-400 flex flex-col gap-1.5 shadow-inner" id="mp-comment-logger">
+                  <div class="text-slate-600">> Ready for lobby matchmaking room connection...</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 6: LEADERBOARDS VIEW ================= -->
+        <section id="page-leaderboard" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="text-cyanGlow"></i>
+              Global High Scores
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Esports hall of fame. Ranks are compiled dynamically daily.</p>
+          </div>
+
+          <!-- Podium cards for first three slots -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
+            <!-- Rank 2 Podium -->
+            <div class="glass-panel border border-slate-800/80 rounded-2xl p-5 flex flex-col items-center justify-between min-h-[170px] relative order-2 md:order-1 hover:border-slate-700 transition">
+              <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-700 border border-slate-600 text-white font-bold font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase">RANK #2</span>
+              <div class="flex flex-col items-center gap-2 mt-2">
+                <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=ProTyper2" class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-800" alt="Avatar">
+                <span class="text-sm font-semibold text-white font-mono">NeonStriker</span>
+                <span class="bg-cyanGlow/10 text-cyanGlow text-[8px] font-bold px-1.5 py-0.5 rounded">DIAMOND IV</span>
+              </div>
+              <span class="text-lg font-black text-slate-300 font-mono tracking-wider">108 WPM</span>
+            </div>
+            
+            <!-- Rank 1 Podium -->
+            <div class="glass-panel border-2 border-goldGlow/40 rounded-3xl p-6 flex flex-col items-center justify-between min-h-[200px] relative order-1 md:order-2 hover:border-goldGlow/60 transition shadow-gold-neon/5">
+              <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-goldGlow text-void font-extrabold font-mono text-[10px] px-3.5 py-1 rounded-full uppercase shadow-lg flex items-center gap-1">
+                🏆 CHAMPION
+              </div>
+              <div class="flex flex-col items-center gap-2.5 mt-2">
+                <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Champ1" class="w-14 h-14 rounded-lg border border-goldGlow/40 bg-slate-800 shadow-gold-neon/10 animate-pulse" alt="Avatar">
+                <span class="text-base font-bold text-white font-mono flex items-center gap-1">
+                  SpeedDemon_99
+                </span>
+                <span class="bg-goldGlow/15 text-goldGlow text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-goldGlow/30 uppercase tracking-widest">LEGENDARY</span>
+              </div>
+              <span class="text-2xl font-black text-goldGlow font-mono tracking-wider animate-pulse">132 WPM</span>
+            </div>
+
+            <!-- Rank 3 Podium -->
+            <div class="glass-panel border border-slate-800/80 rounded-2xl p-5 flex flex-col items-center justify-between min-h-[170px] relative order-3 md:order-3 hover:border-slate-700 transition">
+              <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-800 border border-amber-700 text-white font-bold font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase">RANK #3</span>
+              <div class="flex flex-col items-center gap-2 mt-2">
+                <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Typist98" class="w-12 h-12 rounded-lg border border-slate-700 bg-slate-800" alt="Avatar">
+                <span class="text-sm font-semibold text-white font-mono">QuantumFingers</span>
+                <span class="bg-purpleGlow/10 text-purpleGlow text-[8px] font-bold px-1.5 py-0.5 rounded">DIAMOND II</span>
+              </div>
+              <span class="text-lg font-black text-amber-500 font-mono tracking-wider">99 WPM</span>
+            </div>
+          </div>
+
+          <!-- Leaderboard Rows Table -->
+          <div class="glass-panel border border-slate-800 rounded-3xl overflow-hidden select-none">
+            <div class="grid grid-cols-12 bg-void/50 border-b border-slate-800 px-6 py-3.5 text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
+              <div class="col-span-1">#</div>
+              <div class="col-span-4 sm:col-span-5">RACER USERNAME</div>
+              <div class="col-span-3 sm:col-span-2">TIER RANK</div>
+              <div class="col-span-2 text-center">ACCURACY</div>
+              <div class="col-span-2 text-right">SPEED</div>
+            </div>
+
+            <div class="flex flex-col divide-y divide-slate-800/60 font-mono text-sm" id="leaderboard-table-rows">
+              <!-- Dynamically rendered ranks -->
+              <div class="grid grid-cols-12 px-6 py-3.5 items-center hover:bg-slate-800/10 transition">
+                <div class="col-span-1 text-slate-500 font-bold">#4</div>
+                <div class="col-span-4 sm:col-span-5 flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=BlitzLord" class="w-6 h-6 rounded bg-slate-800 border border-slate-700" alt="Avatar">
+                  <span class="font-semibold text-slate-200">BlitzLord_W</span>
+                </div>
+                <div class="col-span-3 sm:col-span-2"><span class="bg-blue-500/10 text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-blue-500/20">MASTER I</span></div>
+                <div class="col-span-2 text-center text-slate-400">98.5%</div>
+                <div class="col-span-2 text-right text-cyanGlow font-bold">96 WPM</div>
+              </div>
+              
+              <div class="grid grid-cols-12 px-6 py-3.5 items-center hover:bg-slate-800/10 transition">
+                <div class="col-span-1 text-slate-500 font-bold">#5</div>
+                <div class="col-span-4 sm:col-span-5 flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=FastFingers" class="w-6 h-6 rounded bg-slate-800 border border-slate-700" alt="Avatar">
+                  <span class="font-semibold text-slate-200">HyperClicker</span>
+                </div>
+                <div class="col-span-3 sm:col-span-2"><span class="bg-blue-500/10 text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-blue-500/20">MASTER I</span></div>
+                <div class="col-span-2 text-center text-slate-400">97.0%</div>
+                <div class="col-span-2 text-right text-cyanGlow font-bold">94 WPM</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 7: CUSTOM SHOP VIEW ================= -->
+        <section id="page-shop" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="shopping-bag" class="text-cyanGlow"></i>
+              Customization & Themes
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Unlock cybernetic skins and switch modules using earned Blitz-Coins.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 select-none" id="shop-catalog">
+            <!-- Theme Card: Cyberpunk (Default) -->
+            <div class="glass-panel border-2 border-cyanGlow/40 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:shadow-cyan-neon/10 transition">
+              <div>
+                <span class="bg-cyanGlow/10 text-cyanGlow text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-cyanGlow/25 uppercase">SYSTEM INSTALLED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono">CYBERPUNK NEON</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">Electric cyan outlines, dark void black backdrop, and deep purple shadows.</p>
+              </div>
+              <button class="mt-6 w-full py-2.5 bg-cyanGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-cyan-neon/10" onclick="applyThemeStyle('cyberpunk')">APPLY SKIN</button>
+            </div>
+
+            <!-- Theme Card: Matrix Green -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:border-greenGlow/30 hover:shadow-green-neon/5 transition group" id="shop-theme-matrix">
+              <div>
+                <span class="bg-slate-800 text-slate-500 text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-slate-700 uppercase" id="lbl-status-matrix">LOCKED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono group-hover:text-greenGlow transition duration-300">MATRIX DIGITAL</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">Command-terminal matrix green colors with retro terminal fonts.</p>
+              </div>
+              <div class="flex items-center gap-3 mt-6">
+                <button id="btn-theme-matrix" class="flex-grow py-2.5 bg-slate-800 hover:bg-greenGlow hover:text-void text-slate-300 hover:text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider transition active:scale-95" onclick="purchaseSkinItem('matrix', 100)">
+                  UNLOCK (⚡ 100)
+                </button>
+              </div>
+            </div>
+
+            <!-- Theme Card: Synthwave Sunset -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:border-purpleGlow/30 hover:shadow-purple-neon/5 transition group" id="shop-theme-synthwave">
+              <div>
+                <span class="bg-slate-800 text-slate-500 text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-slate-700 uppercase" id="lbl-status-synthwave">LOCKED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono group-hover:text-purpleGlow transition duration-300">SYNTHWAVE SUNSET</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">80s retro aesthetics featuring electric magenta grids, pink glowing keys, and warm sun hues.</p>
+              </div>
+              <div class="flex items-center gap-3 mt-6">
+                <button id="btn-theme-synthwave" class="flex-grow py-2.5 bg-slate-800 hover:bg-purpleGlow hover:text-white text-slate-300 hover:text-white font-bold text-xs rounded-xl font-mono uppercase tracking-wider transition active:scale-95" onclick="purchaseSkinItem('synthwave', 250)">
+                  UNLOCK (⚡ 250)
+                </button>
+              </div>
+            </div>
+
+            <!-- Audio Click Pack: Tactile Blue Cherry MX (Default) -->
+            <div class="glass-panel border-2 border-purpleGlow/40 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:shadow-purple-neon/10 transition">
+              <div>
+                <span class="bg-purpleGlow/10 text-purpleGlow text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-purpleGlow/25 uppercase">SYSTEM INSTALLED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono">TACTILE BLUE CLICK</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">Crisp mechanical keycaps click sounds programmatically synthesized.</p>
+              </div>
+              <button class="mt-6 w-full py-2.5 bg-purpleGlow text-white font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:brightness-125 transition active:scale-95 shadow-purple-neon/10" onclick="applyAudioClickPack('blue')">APPLY SOUND</button>
+            </div>
+
+            <!-- Audio Click Pack: Linear Red Cherry MX -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:border-cyanGlow/30 hover:shadow-cyan-neon/5 transition group" id="shop-sound-red">
+              <div>
+                <span class="bg-slate-800 text-slate-500 text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-slate-700 uppercase" id="lbl-status-redsound">LOCKED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono group-hover:text-cyanGlow transition duration-300">LINEAR RED CHERRY</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">Muffled, direct bottoming-out switches with linear pressure soundscapes.</p>
+              </div>
+              <div class="flex items-center gap-3 mt-6">
+                <button id="btn-sound-red" class="flex-grow py-2.5 bg-slate-800 hover:bg-cyanGlow hover:text-void text-slate-300 hover:text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider transition active:scale-95" onclick="purchaseSkinItem('redsound', 150)">
+                  UNLOCK (⚡ 150)
+                </button>
+              </div>
+            </div>
+
+            <!-- Audio Click Pack: Heavy Green Switches -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col justify-between min-h-[220px] hover:border-goldGlow/30 hover:shadow-gold-neon/5 transition group" id="shop-sound-green">
+              <div>
+                <span class="bg-slate-800 text-slate-500 text-[8px] font-bold font-mono px-2 py-0.5 rounded border border-slate-700 uppercase" id="lbl-status-greensound">LOCKED</span>
+                <h4 class="text-lg font-bold text-white mt-3 font-mono group-hover:text-goldGlow transition duration-300">HEAVY CLICKY GREEN</h4>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">High pitched mechanical switch bells and intense deep clicks for tactile beasts.</p>
+              </div>
+              <div class="flex items-center gap-3 mt-6">
+                <button id="btn-sound-green" class="flex-grow py-2.5 bg-slate-800 hover:bg-goldGlow hover:text-void text-slate-300 hover:text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider transition active:scale-95" onclick="purchaseSkinItem('greensound', 200)">
+                  UNLOCK (⚡ 200)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 8: PROFILE VIEW ================= -->
+        <section id="page-profile" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="user" class="text-cyanGlow"></i>
+              Blitzer Pilot Card
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Unlockable trophy accomplishments, accuracy metrics database, and achievements list.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- User Info (Left) -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col items-center text-center gap-4 relative overflow-hidden select-none">
+              <!-- Accent glowing background -->
+              <div class="absolute -top-24 -left-24 w-48 h-48 bg-purpleGlow/5 rounded-full blur-[80px]"></div>
+              
+              <div class="relative group">
+                <img id="profile-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Blitzer" class="w-24 h-24 rounded-2xl border-2 border-cyanGlow bg-slate-800 shadow-cyan-neon" alt="Avatar">
+                <!-- Change avatar button -->
+                <button class="absolute -bottom-1 -right-1 p-2 bg-void border border-slate-700 rounded-xl text-slate-300 hover:text-white transition" onclick="randomizeUserAvatar()"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
+              </div>
+
+              <div class="flex flex-col gap-0.5 mt-2">
+                <h3 class="text-xl font-bold text-white font-mono uppercase tracking-wide" id="profile-username">GuestBlitzer</h3>
+                <span class="text-xs font-semibold font-mono text-cyanGlow uppercase tracking-widest" id="profile-tier-lbl">BRONZE PILOT TIER</span>
+              </div>
+
+              <!-- Horizontal divider -->
+              <div class="w-full h-px bg-slate-800 my-2"></div>
+
+              <!-- Detailed Stats breakdown -->
+              <div class="grid grid-cols-2 gap-4 w-full text-left font-mono text-xs">
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">SPEED TESTS RUNS</span>
+                  <span class="text-white font-bold text-base" id="profile-tests-run">0</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">BEST TYPING WPM</span>
+                  <span class="text-cyanGlow font-bold text-base" id="profile-best-wpm">--</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">AVERAGE WPM</span>
+                  <span class="text-purpleGlow font-bold text-base" id="profile-avg-wpm">--</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">BEST ACCURACY</span>
+                  <span class="text-greenGlow font-bold text-base" id="profile-best-acc">--%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Achievements Unlocks grid (Right) -->
+            <div class="lg:col-span-2 glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4 select-none">
+              <h3 class="text-sm font-bold font-mono text-slate-400 uppercase tracking-wider">Trophies & Medals</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="trophy-room-container">
+                <!-- Trophy 1 -->
+                <div class="flex items-center gap-3.5 bg-void/30 border border-slate-800 p-3.5 rounded-2xl opacity-40 hover:opacity-100 transition" id="trophy-speed-demon">
+                  <div class="bg-slate-800 text-slate-600 p-3 rounded-xl border border-slate-700" id="icon-container-sd">
+                    <i data-lucide="trophy" class="w-6 h-6"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-bold text-white font-mono uppercase tracking-wide">SPEED DEMON</span>
+                    <span class="text-[10px] text-slate-500">Reach 70 WPM in any typing test.</span>
+                  </div>
+                </div>
+
+                <!-- Trophy 2 -->
+                <div class="flex items-center gap-3.5 bg-void/30 border border-slate-800 p-3.5 rounded-2xl opacity-40 hover:opacity-100 transition" id="trophy-precision-master">
+                  <div class="bg-slate-800 text-slate-600 p-3 rounded-xl border border-slate-700" id="icon-container-pm">
+                    <i data-lucide="target" class="w-6 h-6"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-bold text-white font-mono uppercase tracking-wide">PRECISION KING</span>
+                    <span class="text-[10px] text-slate-500">Reach 100% accuracy in a speed test.</span>
+                  </div>
+                </div>
+
+                <!-- Trophy 3 -->
+                <div class="flex items-center gap-3.5 bg-void/30 border border-slate-800 p-3.5 rounded-2xl opacity-40 hover:opacity-100 transition" id="trophy-marathon-runner">
+                  <div class="bg-slate-800 text-slate-600 p-3 rounded-xl border border-slate-700" id="icon-container-mr">
+                    <i data-lucide="timer" class="w-6 h-6"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-bold text-white font-mono uppercase tracking-wide">BLITZ VETERAN</span>
+                    <span class="text-[10px] text-slate-500">Accumulate over 10 speed test runs.</span>
+                  </div>
+                </div>
+
+                <!-- Trophy 4 -->
+                <div class="flex items-center gap-3.5 bg-void/30 border border-slate-800 p-3.5 rounded-2xl opacity-40 hover:opacity-100 transition" id="trophy-arcade-god">
+                  <div class="bg-slate-800 text-slate-600 p-3 rounded-xl border border-slate-700" id="icon-container-ag">
+                    <i data-lucide="swords" class="w-6 h-6"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-bold text-white font-mono uppercase tracking-wide">ARCADE GOD</span>
+                    <span class="text-[10px] text-slate-500">Reach 5,000 points in any arcade game.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ================= PAGE 9: SETTINGS VIEW ================= -->
+        <section id="page-settings" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="settings" class="text-cyanGlow"></i>
+              System Settings
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Configure audio channels, visual layouts, and player profiles.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
+            <!-- Account Profiler Settings -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-cyanGlow uppercase tracking-wider">Pilot Profile Configuration</h3>
+              
+              <div class="flex flex-col gap-1.5 font-mono text-xs text-slate-400">
+                <label for="settings-username">CHANGE USERNAME:</label>
+                <input type="text" id="settings-username" class="w-full bg-void border border-slate-800 rounded-xl p-3 text-white font-bold placeholder-slate-600 focus:outline-none focus:border-cyanGlow" placeholder="Enter codename...">
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-2 font-mono text-xs text-slate-400">
+                <span class="block">SIMULATE SOCIAL AUTHORIZATION LINKS:</span>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                  <button class="bg-[#ea4335] text-white py-2 rounded-xl text-[10px] font-bold tracking-wider hover:brightness-110 active:scale-95 transition" onclick="simulateAuthLink('Google')">GOOGLE</button>
+                  <button class="bg-[#24292e] text-white py-2 rounded-xl text-[10px] font-bold tracking-wider hover:brightness-110 active:scale-95 transition" onclick="simulateAuthLink('GitHub')">GITHUB</button>
+                  <button class="bg-[#5865f2] text-white py-2 rounded-xl text-[10px] font-bold tracking-wider hover:brightness-110 active:scale-95 transition" onclick="simulateAuthLink('Discord')">DISCORD</button>
+                </div>
+              </div>
+
+              <button class="w-full py-3 bg-cyanGlow text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 transition active:scale-98 mt-4" onclick="saveProfileConfiguration()">
+                COMMIT UPDATE VALUES
+              </button>
+            </div>
+
+            <!-- Visual and Typography Configuration -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-purpleGlow uppercase tracking-wider">Tactile Engine Customizers</h3>
+              
+              <div class="flex items-center justify-between font-mono text-xs text-slate-400 border-b border-slate-800 pb-2">
+                <span>VIRTUAL POSTURE GUIDES:</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settings-posture-toggle" class="sr-only peer" checked onclick="togglePostureUI()">
+                  <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purpleGlow"></div>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between font-mono text-xs text-slate-400 border-b border-slate-800 pb-2">
+                <span>COMBO FLAME FX:</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settings-flames-toggle" class="sr-only peer" checked onclick="toggleFlamesFX()">
+                  <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyanGlow"></div>
+                </label>
+              </div>
+
+              <div class="flex flex-col gap-2 font-mono text-xs text-slate-400">
+                <span>FONT SELECTION:</span>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                  <button class="settings-font-btn active" data-font="sans" onclick="changeAppFontFamily('sans')">Outfit Sans</button>
+                  <button class="settings-font-btn" data-font="mono" onclick="changeAppFontFamily('mono')">Space Grotesk</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 10: ADMIN PANEL ================= -->
+        <section id="page-admin" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="terminal" class="text-amber-500 animate-pulse"></i>
+              System Admin Console
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Matrix System Debugger and Developer cheats toolkit.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
+            <!-- Simulated Core telemetry system -->
+            <div class="md:col-span-2 glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-cyanGlow uppercase tracking-wider">Active System Resources</h3>
+              
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">CPU CORE LOAD</span>
+                  <span class="text-cyanGlow font-bold text-base animate-pulse">12.4%</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">ACTIVE PEERS</span>
+                  <span class="text-purpleGlow font-bold text-base">4,289 / sec</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">WEBSOCKET ping</span>
+                  <span class="text-greenGlow font-bold text-base">8.5 ms</span>
+                </div>
+                <div class="bg-void/50 border border-slate-800 p-3 rounded-xl">
+                  <span class="text-slate-500 block uppercase font-bold text-[9px]">WEBRTC PORTS</span>
+                  <span class="text-goldGlow font-bold text-base">RTC:OK</span>
+                </div>
+              </div>
+
+              <!-- Matrix stream console simulation -->
+              <div class="bg-voidDark border border-slate-800 p-4 rounded-2xl h-48 overflow-y-auto text-[10px] font-mono text-green-500 flex flex-col gap-1 shadow-inner" id="admin-terminal-log">
+                <div>[SYSTEM] Initiating developer logs stream...</div>
+                <div>[SYSTEM] Handshake check: Supreme admin clearance loaded.</div>
+                <div>[SYSTEM] SUPABASE connection status: OK (Synced 14ms ago)</div>
+                <div>[SYSTEM] WEBAUDIO synthesizers: CHERRY MX switches calibrated.</div>
+              </div>
+            </div>
+
+            <!-- Cheat Codes / Seed parameters -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-amber-500 uppercase tracking-wider">Cheat Codes Console</h3>
+              
+              <button class="w-full py-3 bg-gradient-to-r from-amber-500/10 to-amber-600/20 hover:from-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 transition active:scale-98" onclick="triggerCheatCoins()">
+                ⚡ ADD +500 BLITZ-COINS
+              </button>
+
+              <button class="w-full py-3 bg-gradient-to-r from-purpleGlow/10 to-purpleGlow/20 hover:from-purpleGlow/20 border border-purpleGlow/30 text-purpleGlow font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 transition active:scale-98" onclick="triggerCheatXP()">
+                ✨ ADD +350 EXPERIENCE XP
+              </button>
+
+              <button class="w-full py-3 bg-gradient-to-r from-redGlow/10 to-redGlow/20 hover:from-redGlow/20 border border-redGlow/30 text-redGlow font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 transition active:scale-98" onclick="triggerCheatTrophy()">
+                🏆 UNLOCK ALL TROPHIES
+              </button>
+
+              <button class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs rounded-xl font-mono uppercase tracking-wider hover:scale-102 transition active:scale-98" onclick="triggerCheatReset()">
+                🔄 RESET ENGINE ALL LOCALSTORAGE
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 11: AI COACH CONSOLE ================= -->
+        <section id="page-aicoach" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="brain" class="text-cyanGlow"></i>
+              AI Typing Mentor Console
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Holographic performance tracking, adaptive difficulty generator, and live diagnostic coaching.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Holographic Robot Assistant -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-5 items-center text-center">
+              <div class="relative w-36 h-36 flex items-center justify-center bg-cyanGlow/10 rounded-full border border-cyanGlow/30 shadow-[0_0_20px_rgba(0,240,255,0.15)] animate-pulse mt-4">
+                <i data-lucide="cpu" class="w-16 h-16 text-cyanGlow"></i>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-ping"></div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <h3 class="text-base font-bold text-white font-mono uppercase tracking-wide">BLITZ-BOT 9000</h3>
+                <span class="text-[9px] text-cyanGlow font-mono uppercase tracking-widest">Active AI Assistant</span>
+              </div>
+
+              <!-- Chat Speech Bubble -->
+              <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl w-full text-xs text-slate-300 font-mono text-left relative">
+                <p id="ai-coach-bubble">"Welcome pilot. I am reviewing your metrics. Your weak keys are centering around index slider alignments. Initiate the calibrate button below to begin!"</p>
+                <div class="absolute -left-2 top-6 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-slate-800 border-b-8 border-b-transparent"></div>
+              </div>
+
+              <!-- AI Actions Grid -->
+              <div class="grid grid-cols-2 gap-3 w-full">
+                <button class="py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold tracking-wider rounded-xl font-mono uppercase hover:scale-102 transition" onclick="triggerAICoachRoast()">
+                  🔥 ROAST MODE
+                </button>
+                <button class="py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold tracking-wider rounded-xl font-mono uppercase hover:scale-102 transition" onclick="triggerAICoachPraise()">
+                  ✨ MOTIVATE ME
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column (Span 2): Analytics & Generator -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+              <!-- Adaptive Goals Drill generator -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+                <h3 class="text-sm font-bold font-mono text-cyanGlow uppercase tracking-wider">Adaptive Diagnostics & Weakness Calibration</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                  <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl flex flex-col gap-2">
+                    <span class="text-slate-500 uppercase font-bold text-[9px]">PROJECTED TYPO PROBABILITY</span>
+                    <span class="text-yellow-400 font-bold text-lg">Z, X, Q, C (42% Chance)</span>
+                    <p class="text-slate-400 text-[10px]">Your left ring-finger and little-finger transitions have shown a 14ms latency drag.</p>
+                  </div>
+                  <div class="bg-void/50 border border-slate-800 p-4 rounded-2xl flex flex-col gap-2">
+                    <span class="text-slate-500 uppercase font-bold text-[9px]">RECOMMENDED CALIBRATION ACTION</span>
+                    <button class="w-full mt-1 py-2 bg-gradient-to-r from-cyanGlow/20 to-purpleGlow/20 border border-cyanGlow/40 hover:border-cyanGlow text-cyanGlow font-bold text-[10px] rounded-lg uppercase tracking-wider transition" onclick="startAIWeakDrill()">
+                      ⚡ LAUNCH LEFT-HAND WEAKNESS DRILL
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI Code Challenge Generator -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+                <h3 class="text-sm font-bold font-mono text-purpleGlow uppercase tracking-wider">AI Coding Challenge Synthesizer</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Generates random structured coding syntax strings (JavaScript, Python, C++) to calibrate symbol muscle memory.</p>
+                
+                <div class="flex gap-3">
+                  <button class="flex-1 py-2.5 bg-void border border-slate-800 hover:border-purpleGlow text-white font-bold text-[10px] rounded-xl font-mono uppercase tracking-wider transition" onclick="generateAICodingExercise('javascript')">
+                    JS / TS Syntax
+                  </button>
+                  <button class="flex-1 py-2.5 bg-void border border-slate-800 hover:border-purpleGlow text-white font-bold text-[10px] rounded-xl font-mono uppercase tracking-wider transition" onclick="generateAICodingExercise('python')">
+                    Python Loop
+                  </button>
+                  <button class="flex-1 py-2.5 bg-void border border-slate-800 hover:border-purpleGlow text-white font-bold text-[10px] rounded-xl font-mono uppercase tracking-wider transition" onclick="generateAICodingExercise('css')">
+                    Tailwind Config
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 12: CYBER GUILDS ================= -->
+        <section id="page-clans" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="shield" class="text-purpleGlow"></i>
+              Cyber Guilds & Clans
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Conquer joint team challenges, rise up the global rankings, and engage in cooperative typing raids.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Guild Listing (Left Span 2) -->
+            <div class="lg:col-span-2 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-slate-400 uppercase tracking-wider px-1">Top Active Cyber Guilds</h3>
+              
+              <!-- Guild Card 1 -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 text-left w-full sm:w-auto">
+                  <div class="bg-purpleGlow/10 text-purpleGlow p-3.5 rounded-2xl border border-purpleGlow/30">
+                    <i data-lucide="shield" class="w-8 h-8"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base font-bold text-white font-mono uppercase tracking-wide">NEON VECTORS</span>
+                      <span class="px-2 py-0.5 bg-purpleGlow/20 text-purpleGlow border border-purpleGlow/30 rounded-full font-mono text-[8px] uppercase font-bold">LEGENDARY</span>
+                    </div>
+                    <span class="text-xs text-slate-400">Total Members: 28/30 • Total Experience: 342,900 XP</span>
+                  </div>
+                </div>
+                <button class="w-full sm:w-auto px-6 py-2.5 bg-purpleGlow hover:scale-102 hover:brightness-110 active:scale-98 transition text-void font-bold text-xs font-mono uppercase tracking-wider rounded-xl" onclick="triggerJoinClan('NEON VECTORS')">
+                  REQUEST ENTRY
+                </button>
+              </div>
+
+              <!-- Guild Card 2 -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 text-left w-full sm:w-auto">
+                  <div class="bg-cyanGlow/10 text-cyanGlow p-3.5 rounded-2xl border border-cyanGlow/30">
+                    <i data-lucide="swords" class="w-8 h-8"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base font-bold text-white font-mono uppercase tracking-wide">SYNTAX TERRORS</span>
+                      <span class="px-2 py-0.5 bg-cyanGlow/20 text-cyanGlow border border-cyanGlow/30 rounded-full font-mono text-[8px] uppercase font-bold">DIAMOND I</span>
+                    </div>
+                    <span class="text-xs text-slate-400">Total Members: 24/30 • Total Experience: 198,500 XP</span>
+                  </div>
+                </div>
+                <button class="w-full sm:w-auto px-6 py-2.5 bg-cyanGlow hover:scale-102 hover:brightness-110 active:scale-98 transition text-void font-bold text-xs font-mono uppercase tracking-wider rounded-xl" onclick="triggerJoinClan('SYNTAX TERRORS')">
+                  REQUEST ENTRY
+                </button>
+              </div>
+
+              <!-- Guild Card 3 -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 text-left w-full sm:w-auto">
+                  <div class="bg-greenGlow/10 text-greenGlow p-3.5 rounded-2xl border border-greenGlow/30">
+                    <i data-lucide="shield-alert" class="w-8 h-8"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base font-bold text-white font-mono uppercase tracking-wide">KEY MASTERS</span>
+                      <span class="px-2 py-0.5 bg-greenGlow/20 text-greenGlow border border-greenGlow/30 rounded-full font-mono text-[8px] uppercase font-bold">PLATINUM II</span>
+                    </div>
+                    <span class="text-xs text-slate-400">Total Members: 19/30 • Total Experience: 94,800 XP</span>
+                  </div>
+                </div>
+                <button class="w-full sm:w-auto px-6 py-2.5 bg-slate-850 hover:bg-slate-700 text-white font-bold text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-700 transition" onclick="triggerJoinClan('KEY MASTERS')">
+                  REQUEST ENTRY
+                </button>
+              </div>
+            </div>
+
+            <!-- Raid Boss Panel (Right) -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-5 select-none text-center">
+              <div class="bg-gradient-to-r from-redGlow/10 to-redGlow/20 border border-redGlow/30 p-4 rounded-2xl flex flex-col gap-2 items-center text-center">
+                <i data-lucide="flame" class="w-12 h-12 text-redGlow animate-bounce"></i>
+                <h3 class="text-sm font-bold font-mono text-redGlow uppercase tracking-wider">ACTIVE CYBER RAID BOSS</h3>
+                <p class="text-[10px] text-slate-400 font-mono">MEGABOT ALPHA CRITICAL LATENCY STRENGTH</p>
+                <div class="w-full bg-slate-900 border border-slate-850 h-3 rounded-full mt-2 overflow-hidden relative">
+                  <div class="bg-redGlow h-full" style="width: 74%"></div>
+                </div>
+                <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Boss HP: 74,000 / 100,000 WPM</span>
+              </div>
+              <p class="text-slate-400 text-xs leading-relaxed text-left font-mono">Cooperate with clan network vectors. Speed tests run during the active raid boost total DPS to defeat MEGABOT and unlock exclusive visual skins.</p>
+              
+              <button class="w-full py-3 bg-redGlow hover:brightness-110 active:scale-95 transition text-void font-bold text-xs rounded-xl font-mono uppercase tracking-wider" onclick="triggerJoinClanRaid()">
+                🚀 ENGAGE IN COOP TYPING RAID
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 13: BATTLE PASS ================= -->
+        <section id="page-battlepass" class="page-view flex flex-col gap-6 hidden">
+          <div class="flex flex-col border-b border-slate-800 pb-4 select-none">
+            <h2 class="text-2xl font-bold font-mono text-white uppercase flex items-center gap-2">
+              <i data-lucide="crown" class="text-cyanGlow"></i>
+              Battle Pass & Quests
+            </h2>
+            <p class="text-slate-400 text-xs mt-1">Level up your seasonal Battle Pass tiers by completing daily tactical quests and leveling matrix grids.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 select-none">
+            <!-- Seasonal Track (Left Span 2) -->
+            <div class="lg:col-span-2 flex flex-col gap-5">
+              <!-- Tier Progress Overview -->
+              <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+                <div class="flex items-center justify-between font-mono text-xs">
+                  <span class="text-slate-400 uppercase tracking-wide">SEASON 1: TACTILE OVERLOAD</span>
+                  <span class="text-cyanGlow font-bold">TIER LEVEL: 12 / 50</span>
+                </div>
+                <div class="w-full bg-slate-900 border border-slate-800 h-4.5 rounded-full p-1 overflow-hidden">
+                  <div class="bg-gradient-to-r from-cyanGlow to-purpleGlow h-full rounded-full" style="width: 24%"></div>
+                </div>
+                <div class="flex justify-between font-mono text-[9px] text-slate-500">
+                  <span>1,200 / 5,000 XP to next tier</span>
+                  <span class="text-purpleGlow font-bold">PREMIUM UPGRADE: ACTIVE</span>
+                </div>
+              </div>
+
+              <!-- Battle Pass Tiers Carousel Row -->
+              <h3 class="text-sm font-bold font-mono text-slate-400 uppercase tracking-wider px-1">Upcoming Milestone Rewards</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <!-- Tier 10 -->
+                <div class="bg-void/40 border border-slate-850 hover:border-cyanGlow p-4 rounded-2xl flex flex-col gap-3 items-center text-center relative overflow-hidden">
+                  <span class="absolute top-2 left-2 font-mono font-bold text-[8px] text-slate-500">LVL 10</span>
+                  <i data-lucide="palette" class="w-8 h-8 text-cyanGlow mt-2"></i>
+                  <span class="text-[9px] font-bold text-white font-mono uppercase">Neon Keycaps</span>
+                  <span class="px-2 py-0.5 bg-cyanGlow/20 text-cyanGlow border border-cyanGlow/30 rounded-full font-mono text-[7px] font-bold">CLAIMED</span>
+                </div>
+
+                <!-- Tier 20 -->
+                <div class="bg-void/40 border border-slate-850 hover:border-purpleGlow p-4 rounded-2xl flex flex-col gap-3 items-center text-center relative overflow-hidden">
+                  <span class="absolute top-2 left-2 font-mono font-bold text-[8px] text-slate-500">LVL 20</span>
+                  <i data-lucide="skull" class="w-8 h-8 text-purpleGlow mt-2 animate-pulse"></i>
+                  <span class="text-[9px] font-bold text-white font-mono uppercase">Toxic Spikes</span>
+                  <span class="px-2 py-0.5 bg-purpleGlow/20 text-purpleGlow border border-purpleGlow/30 rounded-full font-mono text-[7px] font-bold">CLAIM NOW</span>
+                </div>
+
+                <!-- Tier 30 -->
+                <div class="bg-void/40 border border-slate-850 p-4 rounded-2xl flex flex-col gap-3 items-center text-center relative overflow-hidden opacity-50">
+                  <span class="absolute top-2 left-2 font-mono font-bold text-[8px] text-slate-600">LVL 30</span>
+                  <i data-lucide="sparkles" class="w-8 h-8 text-slate-500 mt-2"></i>
+                  <span class="text-[9px] font-bold text-slate-300 font-mono uppercase">Flame Aura</span>
+                  <span class="px-2 py-0.5 bg-slate-850 text-slate-500 border border-slate-800 rounded-full font-mono text-[7px] font-bold">LOCKED</span>
+                </div>
+
+                <!-- Tier 40 -->
+                <div class="bg-void/40 border border-slate-850 p-4 rounded-2xl flex flex-col gap-3 items-center text-center relative overflow-hidden opacity-50">
+                  <span class="absolute top-2 left-2 font-mono font-bold text-[8px] text-slate-600">LVL 40</span>
+                  <i data-lucide="crown" class="w-8 h-8 text-slate-500 mt-2"></i>
+                  <span class="text-[9px] font-bold text-slate-300 font-mono uppercase">Blitz Sovereign</span>
+                  <span class="px-2 py-0.5 bg-slate-850 text-slate-500 border border-slate-800 rounded-full font-mono text-[7px] font-bold">LOCKED</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daily Quests Grid (Right) -->
+            <div class="glass-panel border border-slate-800 rounded-3xl p-6 flex flex-col gap-4">
+              <h3 class="text-sm font-bold font-mono text-purpleGlow uppercase tracking-wider">Tactile Daily Quests</h3>
+              
+              <!-- Quest 1 -->
+              <div class="bg-void/50 border border-slate-800 p-3.5 rounded-2xl flex flex-col gap-2 text-left font-mono">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white font-bold text-[10px]">SPEED DRILL VETERAN</span>
+                  <span class="text-cyanGlow text-[9px] font-bold">+50 COINS</span>
+                </div>
+                <p class="text-[9px] text-slate-400">Complete 3 typing tests at over 65 WPM speed marks.</p>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-cyanGlow h-full" style="width: 66%"></div>
+                </div>
+                <div class="text-[8px] text-slate-500 flex justify-between">
+                  <span>PROGRESS: 2 / 3 Tests</span>
+                  <span>IN PROGRESS</span>
+                </div>
+              </div>
+
+              <!-- Quest 2 -->
+              <div class="bg-void/50 border border-slate-800 p-3.5 rounded-2xl flex flex-col gap-2 text-left font-mono border-greenGlow/30 bg-greenGlow/[0.02]">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white font-bold text-[10px]">ARCADE CONQUEROR</span>
+                  <span class="text-greenGlow text-[9px] font-bold">+25 COINS</span>
+                </div>
+                <p class="text-[9px] text-slate-400">Play any custom arcade game mode once to completion.</p>
+                <button class="w-full py-1.5 bg-greenGlow text-void font-bold text-[9px] rounded-lg tracking-wider uppercase hover:brightness-110 active:scale-95 transition" onclick="triggerClaimQuestReward('Quest 2')">
+                  CLAIM QUEST COINS
+                </button>
+              </div>
+
+              <!-- Quest 3 -->
+              <div class="bg-void/50 border border-slate-800 p-3.5 rounded-2xl flex flex-col gap-2 text-left font-mono">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white font-bold text-[10px]">MULTIPLAYER GLORY</span>
+                  <span class="text-purpleGlow text-[9px] font-bold">+40 COINS</span>
+                </div>
+                <p class="text-[9px] text-slate-400">Achieve 1st place in a multiplayer lobby matchmaking battle.</p>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-purpleGlow h-full" style="width: 0%"></div>
+                </div>
+                <div class="text-[8px] text-slate-500 flex justify-between">
+                  <span>PROGRESS: 0 / 1 Race</span>
+                  <span>IN PROGRESS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Custom Game Modular Scripts -->
+  <script src="sound.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="engine.js"></script>
+  <script src="games.js"></script>
+  <script src="multiplayer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
